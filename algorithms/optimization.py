@@ -15,8 +15,8 @@ def configuration_score(
     - Use problem.score_components(configuration); ya retorna cobertura,
       redundancia y exposición en ese orden.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente configuration_score")
+    cobertura, redundancia, exposicion = problem.score_components(configuration)
+    return cobertura - redundancia - exposicion
 
 
 def hill_climbing(
@@ -38,8 +38,17 @@ def hill_climbing(
     - Inicialice los historiales con la configuración inicial y agregue solo las
       mejoras aceptadas antes de retornar el OptimizationResult.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente hill_climbing")
+    
+    #estado y puntaje actual
+    actual = initial_configuration
+    puntaje_actual = configuration_score(problem, initial_configuration)
+    
+    #historial de estados y puntajes 
+    historial = []
+    historial_puntajes= []
+    
+    #hill climbing 
+   
 
 
 def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration: int) -> float:
