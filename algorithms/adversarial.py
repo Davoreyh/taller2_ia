@@ -59,8 +59,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
           a realizar según el estado inicial y el valor de su utilidad.
       """
       self.nodes_evaluated += 1
-      if state.is_lose() or state.is_win or max_depth == 0:
-        return (None, evaluation_function(state), self.nodes_evaluated)
+      if state.is_lose() or state.is_win() or max_depth == 0:
+        return (None, evaluation_function(state))
       best_util = float("-inf")
       best_action = None
       actions = state.get_legal_actions(self.MAX)
@@ -84,8 +84,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
           a realizar según el estado inicial y el valor de su utilidad.
       """
       self.nodes_evaluated += 1
-      if state.is_lose() or state.is_win or max_depth == 0:
-        return (None, evaluation_function(state), self.nodes_evaluated)
+      if state.is_lose() or state.is_win() or max_depth == 0:
+        return (None, evaluation_function(state))
       best_util = float("inf")
       best_action = None
       actions = state.get_legal_actions(self.MIN)
@@ -94,7 +94,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if next_util < best_util:
           best_util = next_util
           best_action = action
-      return (best_action, best_util)
+      return ((best_action), best_util)
       
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -133,8 +133,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           tuple[str, float]: Tupla estilo (accion, utilidad) de la mejor acción para MAX
       """
       self.nodes_evaluated += 1
-      if state.is_lose() or state.is_win or max_depth == 0:
-        return (None, evaluation_function(state), self.nodes_evaluated)
+      if state.is_lose() or state.is_win() or max_depth == 0:
+        return (None, evaluation_function(state))
       best_action = None
       actions = state.get_legal_actions(self.MAX)
       for action in actions:
@@ -144,7 +144,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if next_util > alpha:
           alpha = next_util
           best_action = action
-      return (best_action, alpha)
+      return ((best_action), alpha)
       
       
     def evaluate_min(self, state: GameState, max_depth: int, alpha:float, beta: float) -> tuple[str, float]:
@@ -160,8 +160,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           tuple[str, float]: Tupla estilo (accion, utilidad) de la mejor acción para MAX
       """
       self.nodes_evaluated += 1
-      if state.is_lose() or state.is_win or max_depth == 0:
-        return (None, evaluation_function(state), self.nodes_evaluated)
+      if state.is_lose() or state.is_win() or max_depth == 0:
+        return (None, evaluation_function(state))
       best_action = None
       actions = state.get_legal_actions(self.MIN)
       for action in actions:
@@ -171,4 +171,4 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if next_util < beta:
           beta = next_util
           best_action = action
-      return (best_action, beta)
+      return ((best_action), beta)
