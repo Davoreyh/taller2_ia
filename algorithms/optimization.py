@@ -40,14 +40,49 @@ def hill_climbing(
     """
     
     #estado y puntaje actual
-    actual = initial_configuration
+    estado_actual = initial_configuration
     puntaje_actual = configuration_score(problem, initial_configuration)
     
+    evaluaciones = 1
+    
     #historial de estados y puntajes 
-    historial = []
-    historial_puntajes= []
+    historial = [estado_actual]
+    historial_puntajes= [puntaje_actual]
     
     #hill climbing 
+    optimo = False
+    iteraciones = 0
+    while not optimo and iteraciones < max_iterations:
+        mejor_estado = estado_actual
+        mejor_puntaje = puntaje_actual
+        
+        for vecino in problem.neighbors(estado_actual):
+            puntaje = configuration_score(problem,vecino )
+            evaluaciones += 1
+            
+            if puntaje > mejor_puntaje:
+                mejor_estado = vecino
+                mejor_puntaje = puntaje
+                
+        if mejor_puntaje > puntaje_actual:   
+            estado_actual = mejor_estado
+            puntaje_actual = mejor_puntaje
+            historial.append(estado_actual)
+            historial_puntajes.append(puntaje_actual)
+                
+        else:
+            optimo = True
+        
+        iteraciones+=1
+        
+    return OptimizationResult(estado_actual, puntaje_actual, evaluaciones, iteraciones, historial, historial_puntajes)
+                
+                
+
+                
+                
+            
+        
    
 
 
