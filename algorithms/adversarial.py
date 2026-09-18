@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 from algorithms.evaluation import evaluation_function
 from world.game_state import GameState
 
-
-
 class MultiAgentSearchAgent(ABC):
     """Clase base para los agentes de búsqueda adversaria."""
     MAX = 0
@@ -136,14 +134,17 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       if state.is_lose() or state.is_win() or max_depth == 0:
         return (None, evaluation_function(state))
       best_action = None
+      best_util = float("-inf")
       actions = state.get_legal_actions(self.MAX)
       for action in actions:
         next_action, next_util = self.evaluate_min(state.generate_successor(self.MAX, action), max_depth-1, alpha, beta)
-        if beta >= next_util:
-          break
         if next_util > alpha:
           alpha = next_util
+          best_util = next_util
           best_action = action
+        if beta <= next_util:
+          break
+        
       return ((best_action), alpha)
       
       
@@ -163,12 +164,16 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       if state.is_lose() or state.is_win() or max_depth == 0:
         return (None, evaluation_function(state))
       best_action = None
+      best_util = float("inf")
       actions = state.get_legal_actions(self.MIN)
       for action in actions:
         next_action, next_util = self.evaluate_max(state.generate_successor(self.MIN, action), max_depth-1, alpha, beta)
-        if next_util <= alpha:
-          break
         if next_util < beta:
           beta = next_util
           best_action = action
+          best_util = next_util
+        
+        if next_util <= alpha:
+          break
+        
       return ((best_action), beta)

@@ -1,6 +1,8 @@
 import math
 
 from world.game_state import GameState
+#Veamos si Charlie encuentra esta linea de codigo Muajaja
+#Tan chistosa la Sarita
 
 
 def base_evaluation_function(state: GameState) -> float:
@@ -15,7 +17,6 @@ def base_evaluation_function(state: GameState) -> float:
     if state.is_lose():
         return -1000.0
     return float(state.get_score())
-
 
 def evaluation_function(state: GameState) -> float:
     """
@@ -37,6 +38,15 @@ def evaluation_function(state: GameState) -> float:
     """
     if state.is_win() or state.is_lose():
         return base_evaluation_function(state)
-
-    # TODO: Add your code here
-    return base_evaluation_function(state)
+    minimum_distance = float("inf")
+    for goal in state.pending_terminals:
+      d_to_goal = state.layout.distance(state.defender_position, goal)
+      if d_to_goal < minimum_distance:
+        minimum_distance = d_to_goal
+    d_to_die = state.layout.distance(state.defender_position, state.intruder_position)
+    prob_score = state.get_score() + 100/((minimum_distance+1)**(1/2)) - 75/(d_to_die)
+    
+    score_to_min = max(-999, prob_score)
+    score = min(score_to_min, 999)
+  
+    return score
