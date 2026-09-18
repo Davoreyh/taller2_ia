@@ -76,14 +76,6 @@ def hill_climbing(
         iteraciones+=1
         
     return OptimizationResult(estado_actual, puntaje_actual, evaluaciones, iteraciones, historial, historial_puntajes)
-                
-                
-
-                
-                
-            
-        
-   
 
 
 def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration: int) -> float:
@@ -92,8 +84,8 @@ def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration:
 
     Esta función se invoca desde simulated_annealing en cada iteración.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente cooling_schedule")
+    return initial_temperature * (cooling_rate**iteration)
+
 
 
 def simulated_annealing(
@@ -122,10 +114,54 @@ def simulated_annealing(
     """
     rng = rng or random.Random()
     minimum_temperature = 1e-9
+    
+    #estado incial
+    evaluaciones = 1
+    estado_actual = initial_configuration
+    puntaje_actual = configuration_score(problem, initial_configuration)
+    
+    #historiales
+    historial_estados = [estado_actual]
+    historial_puntajes = [puntaje_actual]
+    
+    #ciclo principal
+    mejor_estado = estado_actual
+    mejor_puntaje = puntaje_actual
+    i = 0 
+    frio = False
+    while i < max_iterations and not frio:
+        temp = cooling_schedule(initial_temperature, cooling_rate, i)
+        
+        if temp > minimum_temperature:
+            estado_candidato = rng.choice(problem.neighbors(estado_actual))
+            puntaje_candidato = configuration_score(problem, estado_candidato)
+            evaluaciones +=1
+            delta = puntaje_candidato - puntaje_actual
+            
+            if (delta > 0):
+                 estado_actual = estado_candidato
+                 puntaje_actual = puntaje_candidato
+                                
+                 if puntaje_candidato > mejor_puntaje:
+                     mejor_estado = estado_candidato
+                     mejor_puntaje = puntaje_candidato
+                 
+            elif(delta <= 0 and rng.random() < math.exp(delta/temp)):
+                estado_actual = estado_candidato
+                puntaje_actual = puntaje_candidato
+  
+            historial_estados.append(estado_actual)
+            historial_puntajes.append(puntaje_actual)
+            
+            i +=1
+        
+        else:
+            frio = True 
+            
 
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente simulated_annealing")
-
+        
+    return OptimizationResult(mejor_estado, mejor_puntaje, evaluaciones, i, historial_estados, historial_puntajes)
+        
 
 def one_point_crossover(
     parent1: Configuration, parent2: Configuration, rng: random.Random
