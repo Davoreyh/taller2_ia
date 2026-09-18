@@ -4,9 +4,11 @@ from algorithms.evaluation import evaluation_function
 from world.game_state import GameState
 
 
+
 class MultiAgentSearchAgent(ABC):
     """Clase base para los agentes de búsqueda adversaria."""
-
+    MAX = 0
+    MIN = 1
     def __init__(self, depth: int | str = 2) -> None:
         self.depth = int(depth)
         if self.depth < 1:
@@ -41,8 +43,59 @@ class MinimaxAgent(MultiAgentSearchAgent):
           la raíz. Retorne la acción de MAX y conserve la primera en los empates.
         """
         # TODO: Add your code here
-        raise NotImplementedError("Punto 4: implemente MinimaxAgent.get_action")
+        self.nodes_evaluated = 0
+        action, util = self.evaluate_max(state, self.depth)
+        return action
+      
+    def evaluate_max(self, state: GameState, max_depth: int) -> tuple[str, float]:
+      """Obtiene una tupla con la información de la acción recomendada para MAX en un estado dado
 
+      Args:
+          state (GameState): Estado de la partida
+          max_depth (int): La máxima profundidad que puede tener el árbol
+
+      Returns:
+          tuple[str, float]: Tupla de la forma (accion, utilidad), con la accion recomendada
+          a realizar según el estado inicial y el valor de su utilidad.
+      """
+      self.nodes_evaluated += 1
+      if state.is_lose() or state.is_win or max_depth == 0:
+        return (None, evaluation_function(state), self.nodes_evaluated)
+      best_util = float("-inf")
+      best_action = None
+      actions = state.get_legal_actions(self.MAX)
+      for action in actions:
+        next_action, next_util = self.evaluate_min(state.generate_successor(self.MAX, action), max_depth-1)
+        if next_util > best_util:
+          best_util = next_util
+          best_action = action
+      return (best_action, best_util)
+      
+      
+    def evaluate_min(self, state: GameState, max_depth: int)->tuple[str, float]:
+      """Obtiene una tupla con la información de la acción recomendada para MAX en un estado dado
+
+      Args:
+          state (GameState): Estado de la partida
+          max_depth (int): La máxima profundidad que puede tener el árbol
+
+      Returns:
+          tuple[str, float]: Tupla de la forma (accion, utilidad), con la accion recomendada
+          a realizar según el estado inicial y el valor de su utilidad.
+      """
+      self.nodes_evaluated += 1
+      if state.is_lose() or state.is_win or max_depth == 0:
+        return (None, evaluation_function(state), self.nodes_evaluated)
+      best_util = float("inf")
+      best_action = None
+      actions = state.get_legal_actions(self.MIN)
+      for action in actions:
+        next_action, next_util = self.evaluate_max(state.generate_successor(self.MIN, action), max_depth-1)
+        if next_util < best_util:
+          best_util = next_util
+          best_action = action
+      return (best_action, best_util)
+      
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """Agente Minimax que evita explorar ramas mediante poda alfa-beta."""
@@ -61,5 +114,61 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         - En MAX actualice alpha y corte si valor >= beta; en MIN actualice beta
           y corte si valor <= alpha.
         """
-        # TODO: Add your code here
-        raise NotImplementedError("Punto 5: implemente AlphaBetaAgent.get_action")
+        self.nodes_evaluated = 0
+        alpha = float("-inf")
+        beta = float("inf")
+        action, util = self.evaluate_max(state, self.depth, alpha, beta)
+        return action
+      
+    def evaluate_max(self, state: GameState, max_depth: int, alpha:float, beta: float) -> tuple[str, float]:
+      """Obtiene la mejor accion para MAX, optimizando la búsqueda con poda alpha-beta
+
+      Args:
+          state (GameState): Estado de la partida
+          max_depth (int): La máxima profundidad que puede tener el árbol
+          alpha (float): Utilidad de la mejor acción encontrada para MAX
+          beta (float): Utilidad de la mejor acción encontrada para MIN
+
+      Returns:
+          tuple[str, float]: Tupla estilo (accion, utilidad) de la mejor acción para MAX
+      """
+      self.nodes_evaluated += 1
+      if state.is_lose() or state.is_win or max_depth == 0:
+        return (None, evaluation_function(state), self.nodes_evaluated)
+      best_action = None
+      actions = state.get_legal_actions(self.MAX)
+      for action in actions:
+        next_action, next_util = self.evaluate_min(state.generate_successor(self.MAX, action), max_depth-1, alpha, beta)
+        if beta >= next_util:
+          break
+        if next_util > alpha:
+          alpha = next_util
+          best_action = action
+      return (best_action, alpha)
+      
+      
+    def evaluate_min(self, state: GameState, max_depth: int, alpha:float, beta: float) -> tuple[str, float]:
+      """Obtiene la mejor accion para MAX, optimizando la búsqueda con poda alpha-beta
+
+      Args:
+          state (GameState): Estado de la partida
+          max_depth (int): La máxima profundidad que puede tener el árbol
+          alpha (float): Utilidad de la mejor acción encontrada para MAX
+          beta (float): Utilidad de la mejor acción encontrada para MIN
+
+      Returns:
+          tuple[str, float]: Tupla estilo (accion, utilidad) de la mejor acción para MAX
+      """
+      self.nodes_evaluated += 1
+      if state.is_lose() or state.is_win or max_depth == 0:
+        return (None, evaluation_function(state), self.nodes_evaluated)
+      best_action = None
+      actions = state.get_legal_actions(self.MIN)
+      for action in actions:
+        next_action, next_util = self.evaluate_max(state.generate_successor(self.MIN, action), max_depth-1, alpha, beta)
+        if next_util <= alpha:
+          break
+        if next_util < beta:
+          beta = next_util
+          best_action = action
+      return (best_action, beta)
