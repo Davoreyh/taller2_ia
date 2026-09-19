@@ -3,6 +3,7 @@ import random
 
 from optimization.problem import SmartGridOptimizationProblem
 from optimization.result import Configuration, OptimizationResult
+import queue
 
 
 def configuration_score(
@@ -176,14 +177,16 @@ def one_point_crossover(
     - Cada descendiente combina el prefijo de un padre con el sufijo del otro.
     - Retorne tuplas y no repare aquí los descendientes.
     """
-    if len(parent1) != len(parent2):
+    size = len(parent1)
+    if size != len(parent2):
         raise ValueError("Los padres deben tener la misma longitud")
     if len(parent1) < 2:
         return parent1, parent2
-
     # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente one_point_crossover")
-
+    
+    cut = rng.randint(1,size-1)
+            
+    return parent1[0:cut]+parent2[cut:size],parent2[0:cut]+parent1[cut:size]
 
 def swap_mutation(
     individual: Configuration, mutation_probability: float, rng: random.Random
@@ -202,9 +205,24 @@ def swap_mutation(
     - Retorne una tupla nueva; no modifique el individuo recibido.
     """
     # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente swap_mutation")
+    
+    mutated = list(individual)
+    if rng.random() < mutation_probability:
+        i = 0;
+        ones = []
+        ceroes = []
+        for gen in individual:
+            if gen == 1:
+                ones.append(i)
+            else:
+                ceroes.append(i)
+            i+=1 
+        if len(ones) != 0 and len(ceroes) != 0:
+            mutated[rng.choice(ones)] = 0
+            mutated[rng.choice(ceroes)] = 1
+    return tuple(mutated)
 
-
+    
 def genetic_algorithm(
     problem: SmartGridOptimizationProblem,
     population_size: int = 40,
@@ -238,5 +256,84 @@ def genetic_algorithm(
     if not 0 <= elite_size <= population_size:
         raise ValueError("elite_size debe estar entre 0 y population_size")
 
+    poblacion = problem.initial_population(population_size, rng)
+    
+    puntajes = []
+    for individuo in poblacion:
+        puntajes.append(configuration_score(problem, individuo))
+    evaluaciones = population_size
+
+    idx_mejor = 0
+    mejor_puntaje = puntajes[0]
+    for i in range(1, len(puntajes)):
+        if puntajes[i] > mejor_puntaje:
+            mejor_puntaje = puntajes[i]
+            idx_mejor = i
+    mejor_individuo = poblacion[idx_mejor]
+
+    globalesIndividuos = [mejor_individuo]
+    globalesPuntajes = [mejor_puntaje]
+
+    for generacion in range(generations):
+
+        nueva_poblacion = []
+        nuevos_puntajes = []
+        if elite_size > 0:
+            cola_elites = queue.PriorityQueue()
+            for i in range(len(poblacion)):
+                cola_elites.put((-puntajes[i], i, poblacion[i]))
+
+            for _ in range(elite_size):
+                neg_puntaje, _, elite_individuo = cola_elites.get()
+                nueva_poblacion.append(elite_individuo)
+                nuevos_puntajes.append(-neg_puntaje)
+
+        while len(nueva_poblacion) < population_size:
+            individuo1 = problem.tournament_select(poblacion, puntajes, rng)
+            individuo2 = problem.tournament_select(poblacion, puntajes, rng)
+
+            son1, son2 = one_point_crossover(individuo1, individuo2, rng)
+
+            hijo_reparado = problem.repair_configuration(son1, rng)
+            hijo_mutado = swap_mutation(hijo_reparado, mutation_probability, rng)
+            puntaje = configuration_score(problem, hijo_mutado)
+            evaluaciones += 1
+
+            nueva_poblacion.append(hijo_mutado)
+            nuevos_puntajes.append(puntaje)
+
+            if len(nueva_poblacion) < population_size:
+                hijo_reparado = problem.repair_configuration(son2, rng)
+                hijo_mutado = swap_mutation(hijo_reparado, mutation_probability, rng)
+                puntaje = configuration_score(problem, hijo_mutado)
+                evaluaciones += 1
+
+                nueva_poblacion.append(hijo_mutado)
+                nuevos_puntajes.append(puntaje)
+
+        poblacion = nueva_poblacion
+        puntajes = nuevos_puntajes
+
+        for i in range(len(puntajes)):
+            if puntajes[i] > mejor_puntaje:
+                mejor_puntaje = puntajes[i]
+                mejor_individuo = poblacion[i]
+
+        globalesIndividuos.append(mejor_individuo)
+        globalesPuntajes.append(mejor_puntaje)
+
+    return OptimizationResult(best_configuration=mejor_individuo,best_score=mejor_puntaje
+    ,evaluations=evaluaciones,iterations=generations,history=globalesIndividuos
+    ,score_history=globalesPuntajes)
+                                    
+        
+        
+
+
+
+
     # TODO: Add your code here
+
+
+
     raise NotImplementedError("Punto 3: implemente genetic_algorithm")
