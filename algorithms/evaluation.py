@@ -44,7 +44,7 @@ def evaluation_function(state: GameState) -> float:
       if d_to_goal < minimum_distance:
         minimum_distance = d_to_goal
     d_to_die = state.layout.distance(state.defender_position, state.intruder_position)
-    prob_score = state.get_score() + 100/((minimum_distance+1)**(1/2)) - 75/(d_to_die)
+    prob_score = state.get_score() + 100/((minimum_distance+1)**(1/2)) - 30/(d_to_die) + 2*len(state.get_legal_actions(0))
     
     score_to_min = max(-999, prob_score)
     score = min(score_to_min, 999)
